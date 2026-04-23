@@ -3,12 +3,12 @@ import ReusableTable from "../../utility/ReusableTable";
 import Modal from "../../components/modal/Modal";
 import CreateCourseForm from "../../components/forms/CreateCourseForm";
 import type { TableColumnProps } from "../../lib/interfaces";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
 import api from "../../helpers/api";
 import { toast } from "sonner";
 import { useUser } from "../../context/UserContext";
 import ConfirmDialog from "../../components/modal/ConfirmDialog";
+import ActionCell from "../../utility/ActionCell";
 
 const ManageCourses: React.FC = () => {
   const { token } = useUser();
@@ -23,7 +23,6 @@ const ManageCourses: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [modalType, setModalType] = useState<"view" | "edit" | "delete" | null>(null);
-  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const itemsPerPage = 10;
 
@@ -153,10 +152,6 @@ const ManageCourses: React.FC = () => {
     }
   };
 
-  const toggleActionMenu = (id: string) => {
-    setOpenActionId(openActionId === id ? null : id);
-  };
-
   const columns: TableColumnProps[] = [
     {
       title: "Course Title",
@@ -191,59 +186,32 @@ const ManageCourses: React.FC = () => {
       title: "Action",
       key: "action",
       render: (item) => (
-        <div className="relative">
-          <button
-            onClick={() => toggleActionMenu(item.id)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <BsThreeDotsVertical />
-          </button>
-          {openActionId === item.id && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md border border-gray-200 z-50 text-left">
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedCourse(item);
-                  setModalType("view");
-                  setOpenActionId(null);
-                }}
-              >
-                View Course
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedCourse(item);
-                  setModalType("edit");
-                  setOpenActionId(null);
-                }}
-              >
-                Update Course
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 text-sm"
-                onClick={() => {
-                  setSelectedCourse(item);
-                  setModalType("delete");
-                  setOpenActionId(null);
-                }}
-              >
-                Delete Course
-              </button>
-            </div>
-          )}
-        </div>
+        <ActionCell
+          rowId={item.id}
+          onView={() => {
+            setSelectedCourse(item);
+            setModalType("view");
+          }}
+          onEdit={() => {
+            setSelectedCourse(item);
+            setModalType("edit");
+          }}
+          onDelete={() => {
+            setSelectedCourse(item);
+            setModalType("delete");
+          }}
+        />
       ),
     },
   ];
 
   return (
-    <div className="">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-tetiary">Manage Courses</h1>
+    <div className="space-y-5">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-900">Manage Courses</h1>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-3 h-11.25 text-sm flex items-center justify-center gap-2 bg-purple text-white rounded-md"
+          className="px-4 py-2.5 flex items-center gap-2 bg-purple text-white rounded-lg font-medium hover:bg-purple/90 transition-colors"
         >
           <FaPlus /> <span>Add Course</span>
         </button>

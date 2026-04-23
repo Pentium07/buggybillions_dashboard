@@ -13,6 +13,9 @@ export interface UserProps {
   fullname: string;
   email: string;
   role: string;
+  stack?: string;
+  department?: string;
+  mobile?: string;
 }
 
 interface UserContextType {

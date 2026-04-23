@@ -1,22 +1,14 @@
-import {
-  useFloating,
-  offset,
-  flip,
-  shift,
-  autoUpdate,
-  FloatingPortal,
-} from "@floating-ui/react";
 import React, { useState, useEffect } from "react";
 import ReusableTable from "../../utility/ReusableTable";
 import Modal from "../../components/modal/Modal";
 import CreateTutorForm from "../../components/forms/CreateTutorForm";
 import type { TableColumnProps } from "../../lib/interfaces";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
 import api from "../../helpers/api";
 import { toast } from "sonner";
 import { useUser } from "../../context/UserContext";
 import ConfirmDialog from "../../components/modal/ConfirmDialog";
+import ActionCell from "../../utility/ActionCell";
 
 const ManageTutors: React.FC = () => {
   const { token } = useUser();
@@ -36,7 +28,6 @@ const ManageTutors: React.FC = () => {
   const [modalType, setModalType] = useState<
     "view" | "edit" | "delete" | null
   >(null);
-  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const itemsPerPage = 10;
 
@@ -180,10 +171,6 @@ const ManageTutors: React.FC = () => {
     }
   };
 
-  const toggleActionMenu = (id: string) => {
-    setOpenActionId(openActionId === id ? null : id);
-  };
-
   const columns: TableColumnProps[] = [
     {
       title: "Full Name",
@@ -231,77 +218,36 @@ const ManageTutors: React.FC = () => {
         return new Date(item.created_at).toLocaleDateString();
       },
     },
-    {
-  title: "Action",
-  key: "action",
-  render: (item) => {
-    const { refs, floatingStyles } = useFloating({
-      placement: "bottom-end",
-      middleware: [offset(4), flip(), shift()],
-      whileElementsMounted: autoUpdate,
-    });
-    return (
-      <div className="relative">
-        <button
-          ref={refs.setReference}
-          onClick={() => toggleActionMenu(item.id)}
-          className="p-2 hover:bg-gray-100 rounded-full"
-        >
-          <BsThreeDotsVertical />
-        </button>
-        {openActionId === item.id && (
-          <FloatingPortal>
-            <div
-              ref={refs.setFloating}
-              style={{ ...floatingStyles, zIndex: 9999, minWidth: "180px" }}
-              className="bg-white shadow-lg rounded-md border border-gray-200 text-left"
-            >
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedTutor(item);
-                  setModalType("view");
-                  setOpenActionId(null);
-                }}
-              >
-                View Tutor
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedTutor(item);
-                  setModalType("edit");
-                  setOpenActionId(null);
-                }}
-              >
-                Update Tutor
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 text-sm"
-                onClick={() => {
-                  setSelectedTutor(item);
-                  setModalType("delete");
-                  setOpenActionId(null);
-                }}
-              >
-                Delete Tutor
-              </button>
-            </div>
-          </FloatingPortal>
-        )}
-      </div>
-    );
-  },
-},
+{
+      title: "Action",
+      key: "action",
+      render: (item) => (
+        <ActionCell
+          rowId={item.id}
+          onView={() => {
+            setSelectedTutor(item);
+            setModalType("view");
+          }}
+          onEdit={() => {
+            setSelectedTutor(item);
+            setModalType("edit");
+          }}
+          onDelete={() => {
+            setSelectedTutor(item);
+            setModalType("delete");
+          }}
+        />
+      ),
+    },
   ];
 
   return (
-    <div className="">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-tetiary">Manage Tutors</h1>
+    <div className="space-y-5">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-900">Manage Tutors</h1>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-3 h-11.25 text-sm flex items-center justify-center gap-2 bg-purple text-white rounded-md"
+          className="px-4 py-2.5 flex items-center gap-2 bg-purple text-white rounded-lg font-medium hover:bg-purple/90 transition-colors"
         >
           <FaPlus /> <span>Add Tutor</span>
         </button>

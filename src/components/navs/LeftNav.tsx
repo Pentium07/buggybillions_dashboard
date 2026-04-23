@@ -7,8 +7,9 @@ import { MdAssignmentAdd, MdLibraryBooks, MdLayers, MdSentimentVerySatisfied, Md
 import { GiNotebook } from "react-icons/gi";
 import { useUser } from "../../context/UserContext";
 import { PiStudent, PiChalkboardTeacherFill } from "react-icons/pi";
-import { FaRegUser, FaGraduationCap } from "react-icons/fa";
+import { FaRegUser } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { assests } from "../../assets/assest";
 
 interface LeftNavProps {
   setIsExpanded: (value: boolean) => void;
@@ -113,69 +114,54 @@ const LeftNav: React.FC<LeftNavProps> = ({ setIsExpanded }) => {
   const filteredLinks = navLinks.filter((navlink) => navlink.role === user?.role);
 
   return (
-    <motion.div
-      initial={{ x: -100, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="h-full flex flex-col bg-purple"
-    >
-      <div className="p-6 border-b border-white/20">
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex items-center gap-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-            <FaGraduationCap className="text-2xl text-white" />
-          </div>
+    <div className="h-full flex flex-col bg-purple">
+      <div className="p-5 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <img src={assests.smalllogo} alt="BuggyBillions" className="w-10 h-10 object-contain" />
           <div>
             <h1 className="text-white font-bold text-lg">BuggyBillions</h1>
-            <p className="text-white/60 text-xs capitalize">{user?.role} Portal</p>
+            <p className="text-white/60 text-xs capitalize">{user?.role}</p>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-1">
         {filteredLinks.map((navlink, index) => (
           <motion.div
             key={navlink.path}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.03 }}
           >
             <NavLink
               to={navlink.path}
               className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl text-white transition-all duration-200 ${
+                flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 transition-all duration-200 ${
                   isActive
-                    ? "bg-white/20 font-semibold"
-                    : "hover:bg-white/10"
+                    ? "bg-white/20 text-white font-semibold"
+                    : "hover:bg-white/10 hover:text-white"
                 }
               `}
               onClick={() => setIsExpanded(false)}
             >
-              <span className="text-lg">{navlink.icon}</span>
-              <span className="text-sm">{navlink.name}</span>
+              <span className="text-xl">{navlink.icon}</span>
+              <span className="text-base">{navlink.name}</span>
             </NavLink>
           </motion.div>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-white/20">
-        <motion.button
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
+      <div className="p-4 border-t border-white/10">
+        <button
           type="button"
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+          className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
         >
-          <MdLogout className="text-lg" />
-          <span className="text-sm">Logout</span>
-        </motion.button>
+          <MdLogout className="text-xl" />
+          <span className="text-base">Logout</span>
+        </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

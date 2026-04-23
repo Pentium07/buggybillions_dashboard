@@ -3,18 +3,17 @@ import ReusableTable from "../../utility/ReusableTable";
 import Modal from "../../components/modal/Modal";
 import CreateClassForm from "../../components/forms/CreateClassForm";
 import type { TableColumnProps } from "../../lib/interfaces";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
 import api from "../../helpers/api";
 import { toast } from "sonner";
 import { useUser } from "../../context/UserContext";
 import ConfirmDialog from "../../components/modal/ConfirmDialog";
+import ActionCell from "../../utility/ActionCell";
 
 const ManageClasses: React.FC = () => {
   const { token } = useUser();
   const [classes, setClasses] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
-  const [tutors, setTutors] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -25,7 +24,6 @@ const ManageClasses: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any | null>(null);
   const [modalType, setModalType] = useState<"view" | "edit" | "delete" | null>(null);
-  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const itemsPerPage = 10;
 
@@ -34,10 +32,8 @@ const ManageClasses: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await api.get("/api/classes", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await api.get(`/api/classes?page=${currentPage}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       let classesData = [];
@@ -54,7 +50,7 @@ const ManageClasses: React.FC = () => {
       setTotalItems(response.data.total || classesData.length);
     } catch (err: any) {
       console.error("Error fetching classes:", err);
-      setError("Failed to load classes. Please try again.");
+      setError("Failed to load classes.");
       toast.error("Failed to load classes.");
     } finally {
       setIsLoading(false);
@@ -65,79 +61,29 @@ const ManageClasses: React.FC = () => {
     if (!token) return;
     try {
       const response = await api.get("/api/courses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      let coursesData = [];
-      if (response.data?.courses && Array.isArray(response.data.courses)) {
-        coursesData = response.data.courses;
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
-        coursesData = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        coursesData = response.data;
-      }
-
-      setCourses(coursesData);
+      setCourses(response.data.courses || response.data.data || response.data || []);
     } catch (err) {
-      console.warn("Unable to load course options", err);
-    }
-  };
-
-  const fetchTutors = async () => {
-    if (!token) return;
-    try {
-      const response = await api.get("/api/all_tutors", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      let tutorsData = [];
-      if (response.data?.tutors && Array.isArray(response.data.tutors)) {
-        tutorsData = response.data.tutors;
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
-        tutorsData = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        tutorsData = response.data;
-      }
-
-      setTutors(tutorsData);
-    } catch (err) {
-      console.warn("Unable to load tutor options", err);
+      console.warn("Unable to load courses", err);
     }
   };
 
   useEffect(() => {
     fetchClasses();
     fetchCourses();
-    fetchTutors();
   }, [token, currentPage]);
 
   const handleCreate = async (data: any) => {
-    if (!token) return;
     setIsSubmitting(true);
     try {
-      await api.post(
-        "/api/classes",
-        {
-          name: data.name,
-          course_id: data.courseId,
-          tutor_id: data.tutorId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      await api.post("/api/classes", data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success("Class created successfully!");
       setIsCreateModalOpen(false);
       fetchClasses();
     } catch (err: any) {
-      console.error("Error creating class:", err);
       toast.error(err.response?.data?.message || "Failed to create class.");
     } finally {
       setIsSubmitting(false);
@@ -147,47 +93,34 @@ const ManageClasses: React.FC = () => {
   const handleUpdate = async (data: any) => {
     setIsSubmitting(true);
     try {
-      console.log("Update Data:", data);
       setClasses((prev) =>
-        prev.map((item) =>
-          item.id === selectedClass?.id ? { ...item, ...data } : item
-        )
+        prev.map((c) => (c.id === selectedClass.id ? { ...c, ...data } : c))
       );
-      toast.success("Class updated successfully (Demo)");
+      toast.success("Class updated successfully!");
       setModalType(null);
       setSelectedClass(null);
-    } catch (err: any) {
-      console.error("Error updating class:", err);
+    } catch (err) {
       toast.error("Failed to update class.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (classItem: any) => {
-    if (!classItem?.id || !token) return;
-
+  const handleDelete = async (cls: any) => {
     setIsDeleting(true);
     try {
-      await api.delete(`/api/classes/${classItem.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await api.delete(`/api/classes/${cls.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Class deleted successfully.");
       setModalType(null);
       setSelectedClass(null);
       fetchClasses();
-    } catch (err: any) {
-      console.error("Error deleting class:", err);
-      toast.error(err.response?.data?.message || "Failed to delete class.");
+    } catch (err) {
+      toast.error("Failed to delete class.");
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  const toggleActionMenu = (id: string) => {
-    setOpenActionId(openActionId === id ? null : id);
   };
 
   const columns: TableColumnProps[] = [
@@ -198,78 +131,39 @@ const ManageClasses: React.FC = () => {
     {
       title: "Course",
       key: "course",
-      render: (item) => item.course?.title || item.course_id || "-",
+      render: (item) => item.course?.title || item.course_name || "—",
     },
     {
-      title: "Tutor",
-      key: "tutor",
-      render: (item) => item.tutor?.fullname || item.tutor?.name || item.tutor_id || "-",
+      title: "Description",
+      key: "description",
+      render: (item) => item.description || "—",
     },
     {
       title: "Created At",
       key: "created_at",
-      render: (item) => {
-        if (!item.created_at) return "-";
-        return new Date(item.created_at).toLocaleDateString();
-      },
+      render: (item) => item.created_at ? new Date(item.created_at).toLocaleDateString() : "—",
     },
     {
       title: "Action",
       key: "action",
       render: (item) => (
-        <div className="relative">
-          <button
-            onClick={() => toggleActionMenu(item.id)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <BsThreeDotsVertical />
-          </button>
-          {openActionId === item.id && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md border border-gray-200 z-50 text-left">
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedClass(item);
-                  setModalType("view");
-                  setOpenActionId(null);
-                }}
-              >
-                View Class
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedClass(item);
-                  setModalType("edit");
-                  setOpenActionId(null);
-                }}
-              >
-                Update Class
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 text-sm"
-                onClick={() => {
-                  setSelectedClass(item);
-                  setModalType("delete");
-                  setOpenActionId(null);
-                }}
-              >
-                Delete Class
-              </button>
-            </div>
-          )}
-        </div>
+        <ActionCell
+          rowId={item.id}
+          onView={() => { setSelectedClass(item); setModalType("view"); }}
+          onEdit={() => { setSelectedClass(item); setModalType("edit"); }}
+          onDelete={() => { setSelectedClass(item); setModalType("delete"); }}
+        />
       ),
     },
   ];
 
   return (
-    <div className="">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-tetiary">Manage Classes</h1>
+    <div className="space-y-5">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-900">Manage Classes</h1>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-3 h-11.25 text-sm flex items-center justify-center gap-2 bg-purple text-white rounded-md"
+          className="px-4 py-2.5 flex items-center gap-2 bg-purple text-white rounded-lg font-medium hover:bg-purple/90 transition-colors"
         >
           <FaPlus /> <span>Add Class</span>
         </button>
@@ -290,8 +184,7 @@ const ManageClasses: React.FC = () => {
       {isCreateModalOpen && (
         <Modal onClose={() => setIsCreateModalOpen(false)}>
           <CreateClassForm
-            courses={courses.map((course) => ({ id: course.id, title: course.title }))}
-            tutors={tutors.map((tutor) => ({ id: tutor.id, fullname: tutor.fullname || tutor.name || "Tutor" }))}
+            courses={courses.map((c) => ({ id: c.id, title: c.title }))}
             onSubmit={handleCreate}
             onCancel={() => setIsCreateModalOpen(false)}
             isLoading={isSubmitting}
@@ -300,21 +193,12 @@ const ManageClasses: React.FC = () => {
       )}
 
       {modalType && selectedClass && modalType !== "delete" && (
-        <Modal
-          onClose={() => {
-            setModalType(null);
-            setSelectedClass(null);
-          }}
-        >
+        <Modal onClose={() => { setModalType(null); setSelectedClass(null); }}>
           <CreateClassForm
             initialData={selectedClass}
-            courses={courses.map((course) => ({ id: course.id, title: course.title }))}
-            tutors={tutors.map((tutor) => ({ id: tutor.id, fullname: tutor.fullname || tutor.name || "Tutor" }))}
+            courses={courses.map((c) => ({ id: c.id, title: c.title }))}
             onSubmit={handleUpdate}
-            onCancel={() => {
-              setModalType(null);
-              setSelectedClass(null);
-            }}
+            onCancel={() => { setModalType(null); setSelectedClass(null); }}
             readOnly={modalType === "view"}
             isLoading={isSubmitting}
           />
@@ -323,13 +207,10 @@ const ManageClasses: React.FC = () => {
 
       <ConfirmDialog
         isOpen={modalType === "delete" && selectedClass !== null}
-        title="Confirm Delete"
-        message={`Are you sure you want to delete class "${selectedClass?.name || selectedClass?.id}"? This action cannot be undone.`}
+        title="Delete Class"
+        message={`Are you sure you want to delete "${selectedClass?.name}"?`}
         onConfirm={() => handleDelete(selectedClass)}
-        onCancel={() => {
-          setModalType(null);
-          setSelectedClass(null);
-        }}
+        onCancel={() => { setModalType(null); setSelectedClass(null); }}
         isLoading={isDeleting}
       />
     </div>

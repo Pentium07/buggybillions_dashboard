@@ -8,6 +8,7 @@ import api from "../../helpers/api";
 import { useUser } from "../../context/UserContext";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { assests } from "../../assets/assest";
 
 const Login: React.FC = () => {
   const { login } = useUser();
@@ -56,34 +57,19 @@ const Login: React.FC = () => {
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #7971EB 0%, #6B5DD3 50%, #5750BE 100%)",
-        }}
+        className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 bg-purple"
       >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl" />
-        </div>
-
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
           className="relative z-10 text-center"
         >
-          <h1 className="text-6xl font-bold text-white mb-4">BuggyBillions</h1>
+          <img src={assests.logo} alt="BuggyBillions" className="h-16 w-auto mb-4" />
           <p className="text-white/80 text-xl max-w-md">
             Sign in to continue your learning journey
           </p>
         </motion.div>
-
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="absolute bottom-10 left-10 right-10 h-1 bg-white/20 rounded-full"
-        />
       </motion.div>
 
       <motion.div
@@ -202,18 +188,6 @@ const Login: React.FC = () => {
               )}
             </motion.button>
           </motion.form>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="mt-8 text-center"
-          >
-            <p className="text-sm text-gray-500">
-              Need help? Contact{" "}
-              <span className="text-purple font-medium">support@buggybillions.com</span>
-            </p>
-          </motion.div>
         </div>
       </motion.div>
     </div>

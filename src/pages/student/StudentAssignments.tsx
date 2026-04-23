@@ -98,67 +98,51 @@ function StudentAssignments() {
   );
 
   return (
-    <div className="">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Pending Card – assignments tutor has never graded */}
-        <div className="rounded-xl bg-linear-to-br from-gray-900 to-gray-700 text-white p-5">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between">
-            <span className="text-yellow bg-gray-700 p-2 rounded-full">
-              <CgSandClock />
+            <span className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center">
+              <CgSandClock className="text-yellow-600 text-xl" />
             </span>
-            <span className="text-xs bg-yellow px-2 py-1 rounded">
-              High Priority
+            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+              Pending
             </span>
           </div>
-          <h2 className="text-3xl font-bold mt-4 text-white">
+          <h2 className="text-2xl font-bold text-gray-900 mt-3">
             {loading ? "..." : pendingCount}
           </h2>
-          <p className="text-sm text-white opacity-90">
-            Awaiting Grading
-          </p>
-          {/* <div className="flex justify-between items-center mt-5">
-            <p className="text-xs opacity-80">Next due in 2 days</p>
-            <MdArrowRightAlt color="#E5AA2D" />
-          </div> */}
+          <p className="text-sm text-gray-500">Awaiting Grading</p>
         </div>
 
-        {/* Submitted Card – now shows the same as Graded */}
-        <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between">
-            <span className="bg-[#796fab56] p-2 text-white rounded-2xl">
-              <p className="bg-purple rounded-full p-1">
-                <GrFormCheckmark />
-              </p>
+            <span className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+              <GrFormCheckmark className="text-purple text-xl" />
             </span>
-            <p className="text-purple bg-[#796fab56] px-2 py-1 rounded-full text-xs">
+            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
               Progress
-            </p>
+            </span>
           </div>
-          <p className="text-black font-bold text-3xl mt-4">
+          <h2 className="text-2xl font-bold text-gray-900 mt-3">
             {loading ? "..." : submittedCount}
-          </p>
-          <p className="text-gray-600">Graded Assignments</p>
+          </h2>
+          <p className="text-sm text-gray-500">Submitted</p>
         </div>
 
-        {/* Graded Card */}
-        <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between">
-            <span className="bg-[#796fab56] p-2 text-purple rounded-2xl">
-              <FaStar />
+            <span className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+              <FaStar className="text-green-600 text-xl" />
             </span>
-            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
-              Top performer
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+              Score
             </span>
           </div>
-          <h2 className="text-3xl font-bold mt-4">
+          <h2 className="text-2xl font-bold text-gray-900 mt-3">
             {loading ? "..." : `${gradedCount}%`}
           </h2>
-          <p className="text-gray-600">Average grade</p>
-          {/* <div className="flex items-center mt-2 gap-2">
-            <h3 className="text-[15px] font-medium">RECENT:</h3>
-            <p className="text-purple text-xs">A+ on Wireframing</p>
-          </div> */}
+          <p className="text-sm text-gray-500">Average Grade</p>
         </div>
       </div>
 

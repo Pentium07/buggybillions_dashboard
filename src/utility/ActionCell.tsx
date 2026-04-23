@@ -1,18 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { FaEye } from "react-icons/fa6";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { TfiMore } from "react-icons/tfi";
-// 1. Add FloatingPortal to your imports
-import { useFloating, offset, flip, shift, autoUpdate, FloatingPortal } from '@floating-ui/react';
+import React from "react";
+import { FaEye, FaEdit, FaTrashAlt } from "react-icons/fa";
 
 interface ActionCellProps {
   rowId: number;
-  rowItem?: object;
-  onEdit?: (id: number) => void;   // ✅ optional
-  onDelete?: (id: number) => void; // ✅ optional
-  toggleAction?: () => void;
-  onView?: (id: number) => void;   // ✅ optional
-  canView?: boolean;
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
+  onView?: (id: number) => void;
 }
 
 const ActionCell: React.FC<ActionCellProps> = ({
@@ -20,83 +13,35 @@ const ActionCell: React.FC<ActionCellProps> = ({
   onEdit,
   onDelete,
   onView,
-  canView = false,
 }) => {
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const { refs, floatingStyles } = useFloating({
-  open,
-  onOpenChange: setOpen,
-  placement: "bottom-end",
-  middleware: [
-    offset(4),
-    flip({ fallbackPlacements: ["top-end", "bottom-end"] }),
-    shift({ padding: 8 }),
-  ],
-  whileElementsMounted: autoUpdate,
-});
-
-  // Handle clicking outside since Portal moves it out of the local DOM tree
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        // Only close if the click isn't inside the floating element itself
-        const floatingEl = refs.floating.current;
-        if (floatingEl && floatingEl.contains(event.target as Node)) return;
-        
-        setOpen(false);
-      }
-    };
-
-    if (open) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open, refs.floating]);
-
   return (
-    <div className="flex justify-center items-center" ref={dropdownRef}>
-      <div 
-        ref={refs.setReference} 
-        className={`hover:bg-primary/10 w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${open ? "bg-primary/20" : ""}`}
-        onClick={() => setOpen(!open)}
-      >
-        <TfiMore size={20} className="rotate-90 text-primary" />
-      </div>
-
-      {/* 2. Wrap the menu in FloatingPortal */}
-      {open && (
-        <FloatingPortal>
-          <div 
-            ref={refs.setFloating}
-            style={{ ...floatingStyles, zIndex: 9999 }} // Ensure it's above everything
-            className="flex flex-col bg-white rounded shadow-xl border border-gray-100 min-w-32 text-xs"
-          >
-            {(canView || onView) && (
-              <button
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => { onView?.(rowId); setOpen(false); }}
-              >
-                <FaEye /> View
-              </button>
-            )}
-            {onEdit && (
-              <button
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => { onEdit(rowId); setOpen(false); }}
-              >
-                <FiEdit /> Edit
-              </button>
-            )}
-            {onDelete && (
-              <button
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-red-600 border-t border-gray-50"
-                onClick={() => { onDelete(rowId); setOpen(false); }}
-              >
-                <FiTrash2 /> Delete
-              </button>
-            )}
-          </div>
-        </FloatingPortal>
+    <div className="flex items-center justify-center gap-2">
+      {onView && (
+        <button
+          onClick={() => onView(rowId)}
+          className="p-2 rounded-lg hover:bg-purple/10 transition-colors"
+          title="View"
+        >
+          <FaEye className="text-purple" />
+        </button>
+      )}
+      {onEdit && (
+        <button
+          onClick={() => onEdit(rowId)}
+          className="p-2 rounded-lg hover:bg-purple/10 transition-colors"
+          title="Edit"
+        >
+          <FaEdit className="text-purple" />
+        </button>
+      )}
+      {onDelete && (
+        <button
+          onClick={() => onDelete(rowId)}
+          className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+          title="Delete"
+        >
+          <FaTrashAlt className="text-red-500" />
+        </button>
       )}
     </div>
   );

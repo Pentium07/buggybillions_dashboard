@@ -3,13 +3,13 @@ import ReusableTable from "../../utility/ReusableTable";
 import Modal from "../../components/modal/Modal";
 import CreateStudentForm from "../../components/forms/CreateStudentForm";
 import type { TableColumnProps } from "../../lib/interfaces";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
 import api from "../../helpers/api";
 import { toast } from "sonner";
 import { useUser } from "../../context/UserContext";
 import ConfirmDialog from "../../components/modal/ConfirmDialog";
 import { formatISODateToCustom } from "../../helpers/formatterUtility";
+import ActionCell from "../../utility/ActionCell";
 
 const ManageStudents: React.FC = () => {
   const { token } = useUser();
@@ -25,7 +25,6 @@ const ManageStudents: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [modalType, setModalType] = useState<"view" | "edit" | "delete" | null>(null);
-  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const itemsPerPage = 10;
 
@@ -127,11 +126,6 @@ const ManageStudents: React.FC = () => {
       setIsDeleting(false);
     }
   };
-
-  const toggleActionMenu = (id: string) => {
-    setOpenActionId(openActionId === id ? null : id);
-  };
-
   // ✅ TABLE COLUMNS
   const columns: TableColumnProps[] = [
     {
@@ -178,74 +172,40 @@ const ManageStudents: React.FC = () => {
       title: "Action",
       key: "action",
       render: (item) => (
-        <div className="relative">
-          <button
-            onClick={() => toggleActionMenu(item.id)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <BsThreeDotsVertical />
-          </button>
-
-          {openActionId === item.id && (
-            <div className="absolute right-0 mt-1 w-44 bg-white shadow-lg rounded-md border z-50">
-
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedStudent(item);
-                  setModalType("view");
-                  setOpenActionId(null);
-                }}
-              >
-                View Student
-              </button>
-
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedStudent(item);
-                  setModalType("edit");
-                  setOpenActionId(null);
-                }}
-              >
-                Update Student
-              </button>
-
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 text-sm"
-                onClick={() => {
-                  setSelectedStudent(item);
-                  setModalType("delete");
-                  setOpenActionId(null);
-                }}
-              >
-                Delete Student
-              </button>
-
-            </div>
-          )}
-        </div>
+        <ActionCell
+          rowId={item.id}
+          onView={() => {
+            setSelectedStudent(item);
+            setModalType("view");
+          }}
+          onEdit={() => {
+            setSelectedStudent(item);
+            setModalType("edit");
+          }}
+          onDelete={() => {
+            setSelectedStudent(item);
+            setModalType("delete");
+          }}
+        />
       ),
     },
   ];
 
   return (
-    <div>
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-tetiary">
+    <div className="space-y-5">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-900">
           Manage Students
         </h1>
 
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-3 h-11 flex items-center gap-2 bg-purple text-white rounded-md"
+          className="px-4 py-2.5 flex items-center gap-2 bg-purple text-white rounded-lg font-medium hover:bg-purple/90 transition-colors"
         >
           <FaPlus /> Add Student
         </button>
       </div>
 
-      {/* TABLE */}
       <ReusableTable
         columns={columns}
         data={students}

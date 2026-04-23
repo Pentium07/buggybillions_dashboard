@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useUser } from "../../context/UserContext";
 import OverviewCards from "../../components/cards/OverviewCards";
 import { HiOutlineIdentification } from "react-icons/hi";
-import { PiBookOpenUserFill, PiArrowFatLineUp } from "react-icons/pi";
+import { PiBookOpenUserFill, PiArrowFatLineUp, PiBellRinging } from "react-icons/pi";
 import api from "../../helpers/api";
 
 interface Activity {
@@ -11,19 +11,43 @@ interface Activity {
   time: string;
 }
 
-interface Announcement {
-  date: string;
-  type: string;
+interface Stack {
+  id: string;
   title: string;
-  description: string;
-  color: string;
 }
 
 const StudentOverview: React.FC = () => {
-  const { user, loading } = useUser();
+  const { user, loading: userLoading } = useUser();
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [gradedCount, setGradedCount] = useState<number>(0);
+  const [stacks, setStacks] = useState<Stack[]>([]);
+
+  const fetchStacks = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.get("/api/stacks", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      let stacksData = [];
+      if (response.data?.stacks && Array.isArray(response.data.stacks)) {
+        stacksData = response.data.stacks;
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        stacksData = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        stacksData = response.data;
+      }
+
+      setStacks(stacksData);
+    } catch (error) {
+      console.error("Failed to fetch stacks", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStacks();
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -32,11 +56,9 @@ const StudentOverview: React.FC = () => {
       try {
         setActivitiesLoading(true);
 
-        // 1️⃣ Fetch assignments
         const resAssignments = await api.get(`/api/users/${user.id}/assignments`);
         const assignments = resAssignments.data.assignments || [];
 
-        // ✅ COUNT GRADED
         const graded = assignments.filter((a: any) => a.status === "graded");
         setGradedCount(graded.length);
 
@@ -48,7 +70,6 @@ const StudentOverview: React.FC = () => {
             : "Just now",
         }));
 
-        // 2️⃣ Fetch curriculum safely
         let formattedCurriculum: Activity[] = [];
 
         try {
@@ -81,7 +102,16 @@ const StudentOverview: React.FC = () => {
     fetchActivities();
   }, [user?.id]);
 
-  if (loading) return <p>Loading user data...</p>;
+  if (userLoading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+
+  const getStackName = () => {
+    const userStack = user?.stack;
+    if (!userStack) return "—";
+    const found = stacks.find((s: any) => s.id === userStack || s.title === userStack);
+    return found?.title || userStack;
+  };
+  
+  const userStackName = getStackName();
 
   const activitiesToRender =
     recentActivities.length > 0
@@ -94,88 +124,81 @@ const StudentOverview: React.FC = () => {
           },
         ];
 
-  const announcements: Announcement[] = user?.announcements || [
+  const announcements = [
     {
       date: "Today",
       type: "Important",
       title: "Project Submission Reminder",
-      description:
-        "This is to remind you all to submit your project on or before 12am on Friday",
-      color: "yellow",
+      description: "This is to remind you all to submit your project on or before 12am on Friday",
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <OverviewCards
-          icon={<HiOutlineIdentification size="30px" />}
+          icon={<HiOutlineIdentification className="text-2xl" />}
           label="Student ID"
           value={user?.bug_id?.toString() || "N/A"}
-          iconBg="bg-gray-100"
-          iconColor="text-gray-500"
+          iconBg="bg-purple-100"
+          iconColor="text-purple"
         />
         <OverviewCards
-          icon={<PiBookOpenUserFill size="30px" />}
-          label="Course Enrolled"
-          value={user?.department || "N/A"}
-          iconBg="bg-orange-100"
-          iconColor="text-orange-500"
+          icon={<PiBookOpenUserFill className="text-2xl" />}
+          label="Stack"
+          value={userStackName}
+          iconBg="bg-purple-100"
+          iconColor="text-purple"
         />
         <OverviewCards
-          icon={<PiArrowFatLineUp size="30px" />}
+          icon={<PiArrowFatLineUp className="text-2xl" />}
           label="Graded Assignments"
           value={gradedCount.toString()}
-          iconBg="bg-gray-100"
-          iconColor="text-gray-500"
+          iconBg="bg-purple-100"
+          iconColor="text-purple"
         />
       </div>
 
-      {/* Recent Activities & Announcements */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-xl bg-white p-4 shadow-md border border-gray-200">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-[25px] font-semibold">Recent Activities</h3>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Activities</h3>
 
           {activitiesLoading ? (
             <p className="text-gray-500">Loading activities...</p>
           ) : (
-            <ul className="space-y-4 max-h-50 styled-scrollbar overflow-y-scroll pe-2">
+            <div className="space-y-3">
               {activitiesToRender.map((activity, index) => (
-                <li
+                <div
                   key={index}
-                  className="flex items-center justify-between rounded-lg bg-gray-200 p-4"
+                  className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-purple-50/50 transition-colors"
                 >
                   <div>
-                    <p className="font-medium">{activity.title}</p>
+                    <p className="font-semibold text-gray-900">{activity.title}</p>
                     <p className="text-sm text-gray-500">{activity.description}</p>
                   </div>
-                  <span className="text-[19px] text-gray-700">{activity.time}</span>
-                </li>
+                  <span className="text-sm text-gray-400">{activity.time}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
 
-        <div className="rounded-xl bg-white p-4 shadow-sm border border-gray-200">
-          <h3 className="mb-4 text-lg font-semibold">Announcements</h3>
-          <div className="space-y-4 max-h-[200px] pe-2 styled-scrollbar overflow-y-scroll">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <PiBellRinging className="text-purple text-xl" />
+            <h3 className="text-lg font-bold text-gray-900">Announcements</h3>
+          </div>
+          <div className="space-y-3">
             {announcements.map((ann, index) => (
               <div
                 key={index}
-                className={`rounded-lg border-l-4 ${
-                  ann.color === "yellow"
-                    ? "border-yellow-500 bg-yellow-50"
-                    : "border-gray-300 bg-gray-50"
-                } p-4`}
+                className="p-4 rounded-xl border-l-4 border-purple bg-purple-50"
               >
-                <small className="text-xs">
+                <p className="text-xs text-gray-500">
                   {ann.date} • {ann.type}
-                </small>
-                <h4 className="mt-1 font-medium">{ann.title}</h4>
-                <p className="text-sm text-gray-600">{ann.description}</p>
+                </p>
+                <h4 className="font-semibold text-gray-900 mt-1">{ann.title}</h4>
+                <p className="text-sm text-gray-600 mt-1">{ann.description}</p>
               </div>
             ))}
           </div>

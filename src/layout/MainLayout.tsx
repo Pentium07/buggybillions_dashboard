@@ -16,32 +16,49 @@ const MainLayout: React.FC<MainLayOutProps> = ({ child, heading, subText }) => {
 
   return (
     <div className="w-screen h-screen overflow-hidden flex bg-gray-50">
+      <AnimatePresence mode="wait">
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setIsExpanded(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <div
-        onClick={() => setIsExpanded(!isExpanded)}
-        className={`w-72 h-full lg:static absolute z-50 ${
-          isExpanded ? "top-0 left-0" : "-left-full"
-        } transition-transform duration-300`}
+        className={`
+          fixed lg:static inset-y-0 left-0 z-50
+          w-64 h-full
+          transform transition-transform duration-300 ease-out
+          ${isExpanded ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        `}
       >
-        <LeftNav setIsExpanded={setIsExpanded} />
+        <div className="h-full">
+          <LeftNav setIsExpanded={setIsExpanded} />
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col h-full min-w-0">
-        <div className="flex items-center gap-4 lg:pl-0 pl-4 pr-4 py-4 lg:py-0">
+        <header className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100">
           <button
             type="button"
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-50 transition-colors"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            <FaBars className="text-gray-600" />
+            <FaBars className="text-gray-600 text-lg" />
           </button>
           <div className="flex-1">
             <TopNav heading={heading} subText={subText || ""} />
           </div>
-        </div>
+        </header>
 
         <main
           ref={mainContentRef}
-          className="flex-1 overflow-y-auto no-scrollbar px-6 py-6"
+          className="flex-1 overflow-y-auto no-scrollbar px-4 py-4 lg:px-6 lg:py-6"
           style={{
             WebkitOverflowScrolling: "touch",
             overscrollBehaviorY: "contain",
@@ -50,10 +67,10 @@ const MainLayout: React.FC<MainLayOutProps> = ({ child, heading, subText }) => {
         >
           <AnimatePresence mode="wait">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               {child}
             </motion.div>

@@ -1,7 +1,7 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "../../context/UserContext";
-import { FaBell, FaSearch } from "react-icons/fa";
+import { FaBell, FaSearch, FaUserCircle, FaCog, FaSignOutAlt, FaBars } from "react-icons/fa";
 
 interface TopNavProps {
   heading: string;
@@ -9,7 +9,8 @@ interface TopNavProps {
 }
 
 const TopNav: React.FC<TopNavProps> = ({ heading, subText }) => {
-  const { user, loading } = useUser();
+  const { user, loading, logout } = useUser();
+  const [showProfile, setShowProfile] = useState(false);
 
   if (loading) {
     return null;
@@ -22,49 +23,71 @@ const TopNav: React.FC<TopNavProps> = ({ heading, subText }) => {
       .join("") || user?.username?.charAt(0).toUpperCase() || "U";
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between"
-    >
+    <header className="flex items-center justify-between w-full">
       <div>
-        <h4 className="text-xl font-semibold text-gray-900">{heading}</h4>
-        {subText && <p className="text-sm text-gray-500 mt-0.5">{subText}</p>}
+        <h4 className="text-lg font-bold text-gray-900">{heading}</h4>
+        {subText && <p className="text-xs text-gray-500">{subText}</p>}
       </div>
 
-      <div className="flex items-center gap-4">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <FaSearch className="text-gray-500" />
-        </motion.div>
+          <FaBell className="text-gray-600 text-lg" />
+        </button>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative"
-        >
-          <FaBell className="text-gray-500" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-        </motion.div>
-
-        <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-gray-900">
-              {user?.fullname || user?.username || "User"}
-            </p>
-            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-          </div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="w-10 h-10 rounded-xl bg-purple text-white flex items-center justify-center font-semibold"
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowProfile(!showProfile)}
+            className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            {initials}
-          </motion.div>
+            <div className="w-9 h-9 rounded-lg bg-purple flex items-center justify-center">
+              <span className="text-white text-sm font-semibold">{initials}</span>
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {showProfile && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+              >
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900">
+                    {user?.fullname || user?.username || "User"}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                </div>
+                <div className="py-1">
+                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50">
+                    <FaUserCircle className="text-gray-400" />
+                    Profile
+                  </button>
+                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50">
+                    <FaCog className="text-gray-400" />
+                    Settings
+                  </button>
+                </div>
+                <div className="border-t border-gray-100 py-1">
+                  <button
+                    onClick={logout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <FaSignOutAlt />
+                    Logout
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 };
 

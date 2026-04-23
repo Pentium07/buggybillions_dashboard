@@ -3,12 +3,12 @@ import ReusableTable from "../../utility/ReusableTable";
 import Modal from "../../components/modal/Modal";
 import CreateStackForm from "../../components/forms/CreateStackForm";
 import type { TableColumnProps } from "../../lib/interfaces";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
 import api from "../../helpers/api";
 import { toast } from "sonner";
 import { useUser } from "../../context/UserContext";
 import ConfirmDialog from "../../components/modal/ConfirmDialog";
+import ActionCell from "../../utility/ActionCell";
 
 const ManageStacks: React.FC = () => {
   const { token } = useUser();
@@ -24,7 +24,6 @@ const ManageStacks: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedStack, setSelectedStack] = useState<any | null>(null);
   const [modalType, setModalType] = useState<"view" | "edit" | "delete" | null>(null);
-  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const itemsPerPage = 10;
 
@@ -60,7 +59,6 @@ const ManageStacks: React.FC = () => {
     }
   };
 
-  // Only needed for dropdown in CreateStackForm
   const fetchCourses = async () => {
     if (!token) return;
     try {
@@ -128,7 +126,7 @@ const ManageStacks: React.FC = () => {
           stack.id === selectedStack.id ? { ...stack, ...data } : stack
         )
       );
-      toast.success("Stack updated successfully (Demo)");
+      toast.success("Stack updated successfully!");
       setModalType(null);
       setSelectedStack(null);
     } catch (err: any) {
@@ -160,10 +158,6 @@ const ManageStacks: React.FC = () => {
     }
   };
 
-  const toggleActionMenu = (id: string) => {
-    setOpenActionId(openActionId === id ? null : id);
-  };
-
   const columns: TableColumnProps[] = [
     {
       title: "Stack Title",
@@ -174,14 +168,10 @@ const ManageStacks: React.FC = () => {
       key: "courses",
       render: (item) => {
         if (!item.courses || item.courses.length === 0) return "-";
-
         return (
           <div className="flex flex-wrap gap-1">
             {item.courses.map((course: any) => (
-              <span
-                key={course.id}
-                className="max-w-xs block truncate text-left"
-              >
+              <span key={course.id} className="text-sm">
                 {course.title}
               </span>
             ))}
@@ -192,12 +182,8 @@ const ManageStacks: React.FC = () => {
     {
       title: "Description",
       key: "description",
-      className: "p-3 text-sm text-black font-medium",
       render: (item) => (
-        <span
-          title={item.description}
-          className="max-w-xs block truncate text-left"
-        >
+        <span className="max-w-xs block truncate">
           {item.description || "—"}
         </span>
       ),
@@ -214,61 +200,34 @@ const ManageStacks: React.FC = () => {
       title: "Action",
       key: "action",
       render: (item) => (
-        <div className="relative">
-          <button
-            onClick={() => toggleActionMenu(item.id)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <BsThreeDotsVertical />
-          </button>
-          {openActionId === item.id && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md border border-gray-200 z-50 text-left">
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedStack(item);
-                  setModalType("view");
-                  setOpenActionId(null);
-                }}
-              >
-                View Stack
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                onClick={() => {
-                  setSelectedStack(item);
-                  setModalType("edit");
-                  setOpenActionId(null);
-                }}
-              >
-                Update Stack
-              </button>
-              <button
-                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 text-sm"
-                onClick={() => {
-                  setSelectedStack(item);
-                  setModalType("delete");
-                  setOpenActionId(null);
-                }}
-              >
-                Delete Stack
-              </button>
-            </div>
-          )}
-        </div>
+        <ActionCell
+          rowId={item.id}
+          onView={() => {
+            setSelectedStack(item);
+            setModalType("view");
+          }}
+          onEdit={() => {
+            setSelectedStack(item);
+            setModalType("edit");
+          }}
+          onDelete={() => {
+            setSelectedStack(item);
+            setModalType("delete");
+          }}
+        />
       ),
     },
   ];
 
   return (
-    <div className="">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-tetiary">
+    <div className="space-y-5">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-900">
           Manage Stacks
         </h1>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-3 h-11.25 text-sm flex items-center justify-center gap-2 bg-purple text-white rounded-md"
+          className="px-4 py-2.5 flex items-center gap-2 bg-purple text-white rounded-lg font-medium hover:bg-purple/90 transition-colors"
         >
           <FaPlus /> <span>Add Stack</span>
         </button>
