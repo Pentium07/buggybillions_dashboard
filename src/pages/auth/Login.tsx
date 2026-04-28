@@ -65,7 +65,7 @@ const Login: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="relative z-10 text-center"
         >
-          <img src={assests.logo} alt="BuggyBillions" className="h-16 w-auto mb-4" />
+          <img src={assests.logo} alt="BuggyBillions" className="h-32 mb-4" />
           <p className="text-white/80 text-xl max-w-md">
             Sign in to continue your learning journey
           </p>
@@ -188,6 +188,18 @@ const Login: React.FC = () => {
               )}
             </motion.button>
           </motion.form>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mt-8 text-center"
+          >
+            <p className="text-sm text-gray-500">
+              Need help? Contact{" "}
+              <span className="text-purple font-medium">support@buggybillions.com</span>
+            </p>
+          </motion.div>
         </div>
       </motion.div>
     </div>
