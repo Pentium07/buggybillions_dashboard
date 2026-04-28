@@ -11,13 +11,13 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
 
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install Dependencies
         run: npm install
@@ -27,8 +27,8 @@ jobs:
           echo "VITE_STORAGE_BASE_URL=${{ secrets.VITE_STORAGE_BASE_URL }}" >> .env
           npm run build
 
-      - name: Deploy to cPanel FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+      - name: Deploy to hPanel FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
 
         with:
           server: ${{ secrets.FTP_SERVER }}
