@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 interface CreateClassFormProps {
   initialData?: any;
@@ -19,44 +21,44 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
   readOnly = false,
   isLoading = false,
 }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    courseId: "",
-    tutorId: "",
+  const isEdit = !!initialData;
+
+  const formik = useFormik({
+    initialValues: {
+      name: initialData?.name || "",
+      courseId: initialData?.course_id || initialData?.courseId || "",
+      tutorId: initialData?.tutor_id || initialData?.tutorId || "",
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Class name is required"),
+      courseId: Yup.string().required("Course is required"),
+      tutorId: Yup.string().required("Tutor is required"),
+    }),
+    onSubmit: (values) => {
+      onSubmit({
+        name: values.name,
+        course_id: values.courseId,
+        tutor_id: values.tutorId,
+      });
+    },
   });
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        name: initialData.name || "",
-        courseId: initialData.course_id || initialData.courseId || "",
-        tutorId: initialData.tutor_id || initialData.tutorId || "",
-      });
-    }
-  }, [initialData]);
+  const getError = (field: keyof typeof formik.values) =>
+    formik.touched[field] && formik.errors[field]
+      ? String(formik.errors[field])
+      : "";
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+  const inputClass =
+    "h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100 w-full";
+  const errorClass = "text-xs text-red-500 mt-1";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={formik.handleSubmit} className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold mb-2 text-tetiary">
           {readOnly
             ? "Class Details"
-            : initialData
+            : isEdit
             ? "Edit Class"
             : "Add New Class"}
         </h2>
@@ -71,24 +73,27 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
           <input
             type="text"
             name="name"
-            value={formData.name}
-            onChange={handleChange}
+            value={formik.values.name}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             disabled={readOnly || isLoading}
             required
-            className="h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100"
+            className={inputClass}
             placeholder="Enter class name"
           />
+          {getError("name") && <p className={errorClass}>{getError("name")}</p>}
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">Course</label>
           <select
             name="courseId"
-            value={formData.courseId}
-            onChange={handleChange}
+            value={formik.values.courseId}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             disabled={readOnly || isLoading}
             required
-            className="h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100"
+            className={inputClass}
           >
             <option value="">Select a course</option>
             {courses.map((course) => (
@@ -97,17 +102,21 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
               </option>
             ))}
           </select>
+          {getError("courseId") && (
+            <p className={errorClass}>{getError("courseId")}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2 md:col-span-2">
           <label className="text-sm font-medium text-gray-700">Tutor</label>
           <select
             name="tutorId"
-            value={formData.tutorId}
-            onChange={handleChange}
+            value={formik.values.tutorId}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             disabled={readOnly || isLoading}
             required
-            className="h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100"
+            className={inputClass}
           >
             <option value="">Select a tutor</option>
             {tutors.map((tutor) => (
@@ -116,6 +125,9 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
               </option>
             ))}
           </select>
+          {getError("tutorId") && (
+            <p className={errorClass}>{getError("tutorId")}</p>
+          )}
         </div>
       </div>
 
@@ -134,7 +146,13 @@ const CreateClassForm: React.FC<CreateClassFormProps> = ({
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-white bg-purple rounded-md disabled:opacity-70"
           >
-            {isLoading ? (initialData ? "Updating..." : "Creating...") : initialData ? "Update Class" : "Create Class"}
+            {isLoading
+              ? isEdit
+                ? "Updating..."
+                : "Creating..."
+              : isEdit
+              ? "Update Class"
+              : "Create Class"}
           </button>
         )}
       </div>

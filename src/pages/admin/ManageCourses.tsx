@@ -74,9 +74,9 @@ const ManageCourses: React.FC = () => {
       formData.append("title", data.title);
       formData.append("price", data.price?.toString() || "");
       formData.append("language", data.language);
-      formData.append("description", data.description);
+      formData.append("long_description", data.description);
       if (data.image) {
-        formData.append("image", data.image);
+        formData.append("cover_image", data.image);
       }
 
       await api.post("/api/courses", formData, {
@@ -103,15 +103,16 @@ const ManageCourses: React.FC = () => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
+      formData.append("_method", "PUT");
       formData.append("title", data.title);
       formData.append("price", data.price?.toString() || "");
       formData.append("language", data.language);
-      formData.append("description", data.description);
+      formData.append("long_description", data.description);
       if (data.image) {
-        formData.append("image", data.image);
+        formData.append("cover_image", data.image);
       }
 
-      await api.put(`/api/courses/${selectedCourse.id}`, formData, {
+      await api.post(`/api/courses/${selectedCourse.id}`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -171,7 +172,7 @@ const ManageCourses: React.FC = () => {
       key: "description",
       className: "p-3 text-sm text-black font-medium",
       render: (item) => (
-        <span title={item.description} className="max-w-xs block truncate text-left">{item.description || "—"}</span>
+        <span title={item.long_description || item.description} className="max-w-xs block truncate text-left">{item.long_description || item.description || "—"}</span>
       ),
     },
     {

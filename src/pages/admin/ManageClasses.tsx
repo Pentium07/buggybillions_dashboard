@@ -14,6 +14,7 @@ const ManageClasses: React.FC = () => {
   const { token } = useUser();
   const [classes, setClasses] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
+  const [tutors, setTutors] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -69,9 +70,22 @@ const ManageClasses: React.FC = () => {
     }
   };
 
+  const fetchTutors = async () => {
+    if (!token) return;
+    try {
+      const response = await api.get("/api/all_tutors", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTutors(response.data.tutors || response.data.data || response.data || []);
+    } catch (err) {
+      console.warn("Unable to load tutors", err);
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
     fetchCourses();
+    fetchTutors();
   }, [token, currentPage]);
 
   const handleCreate = async (data: any) => {
@@ -185,6 +199,7 @@ const ManageClasses: React.FC = () => {
         <Modal onClose={() => setIsCreateModalOpen(false)}>
           <CreateClassForm
             courses={courses.map((c) => ({ id: c.id, title: c.title }))}
+            tutors={tutors.map((t) => ({ id: t.id, fullname: t.fullname }))}
             onSubmit={handleCreate}
             onCancel={() => setIsCreateModalOpen(false)}
             isLoading={isSubmitting}
@@ -197,6 +212,7 @@ const ManageClasses: React.FC = () => {
           <CreateClassForm
             initialData={selectedClass}
             courses={courses.map((c) => ({ id: c.id, title: c.title }))}
+            tutors={tutors.map((t) => ({ id: t.id, fullname: t.fullname }))}
             onSubmit={handleUpdate}
             onCancel={() => { setModalType(null); setSelectedClass(null); }}
             readOnly={modalType === "view"}

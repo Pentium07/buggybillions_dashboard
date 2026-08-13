@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 interface CreateStackFormProps {
   initialData?: any;
@@ -17,57 +19,62 @@ const CreateStackForm: React.FC<CreateStackFormProps> = ({
   readOnly = false,
   isLoading = false,
 }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    courseId: "",
-    description: "",
-    image: null as File | null,
-  });
+  const isEdit = !!initialData;
   const [preview, setPreview] = useState<string>("");
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        title: initialData.title || "",
-        courseId: initialData.course_id || initialData.courseId || "",
-        description: initialData.description || "",
-        image: null,
-      });
-      if (initialData.image) {
-        setPreview(initialData.image);
-      }
+    if (initialData?.image) {
+      setPreview(initialData.image);
     }
   }, [initialData]);
+
+  const formik = useFormik({
+    initialValues: {
+      title: initialData?.title || "",
+      courseId: initialData?.course_id || initialData?.courseId || "",
+      description: initialData?.description || "",
+      image: null as File | null,
+    },
+    validationSchema: Yup.object({
+      title: Yup.string().required("Stack title is required"),
+      courseId: Yup.string().required("Course is required"),
+      description: Yup.string().required("Description is required"),
+    }),
+    onSubmit: (values) => {
+      onSubmit(values);
+    },
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    formik.setFieldValue(name, value);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (!file) return;
-    setFormData((prev) => ({ ...prev, image: file }));
+    formik.setFieldValue("image", file);
     setPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+  const getError = (field: keyof typeof formik.values) =>
+    formik.touched[field] && formik.errors[field]
+      ? String(formik.errors[field])
+      : "";
+
+  const inputClass =
+    "h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100 w-full";
+  const errorClass = "text-xs text-red-500 mt-1";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={formik.handleSubmit} className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold mb-2 text-tetiary">
           {readOnly
             ? "Stack Details"
-            : initialData
+            : isEdit
             ? "Edit Stack"
             : "Add New Stack"}
         </h2>
@@ -82,13 +89,15 @@ const CreateStackForm: React.FC<CreateStackFormProps> = ({
           <input
             type="text"
             name="title"
-            value={formData.title}
+            value={formik.values.title}
             onChange={handleChange}
+            onBlur={formik.handleBlur}
             disabled={readOnly || isLoading}
             required
-            className="h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100"
+            className={inputClass}
             placeholder="Enter stack title"
           />
+          {getError("title") && <p className={errorClass}>{getError("title")}</p>}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -96,11 +105,12 @@ const CreateStackForm: React.FC<CreateStackFormProps> = ({
           {courses.length > 0 ? (
             <select
               name="courseId"
-              value={formData.courseId}
+              value={formik.values.courseId}
               onChange={handleChange}
+              onBlur={formik.handleBlur}
               disabled={readOnly || isLoading}
               required
-              className="h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100"
+              className={inputClass}
             >
               <option value="">Select a course</option>
               {courses.map((course) => (
@@ -113,13 +123,17 @@ const CreateStackForm: React.FC<CreateStackFormProps> = ({
             <input
               type="text"
               name="courseId"
-              value={formData.courseId}
+              value={formik.values.courseId}
               onChange={handleChange}
+              onBlur={formik.handleBlur}
               disabled={readOnly || isLoading}
               required
-              className="h-11.25 indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100"
+              className={inputClass}
               placeholder="Enter course ID"
             />
+          )}
+          {getError("courseId") && (
+            <p className={errorClass}>{getError("courseId")}</p>
           )}
         </div>
 
@@ -146,14 +160,18 @@ const CreateStackForm: React.FC<CreateStackFormProps> = ({
         <label className="text-sm font-medium text-gray-700">Description</label>
         <textarea
           name="description"
-          value={formData.description}
+          value={formik.values.description}
           onChange={handleChange}
+          onBlur={formik.handleBlur}
           disabled={readOnly || isLoading}
           required
           rows={5}
-          className="indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100"
+          className="indent-2 border border-black/15 rounded-lg outline-0 disabled:bg-gray-100 w-full"
           placeholder="Enter stack description"
         />
+        {getError("description") && (
+          <p className={errorClass}>{getError("description")}</p>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 mt-4">
@@ -174,9 +192,9 @@ const CreateStackForm: React.FC<CreateStackFormProps> = ({
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {initialData ? "Updating..." : "Creating..."}
+                {isEdit ? "Updating..." : "Creating..."}
               </>
-            ) : initialData ? (
+            ) : isEdit ? (
               "Update Stack"
             ) : (
               "Create Stack"

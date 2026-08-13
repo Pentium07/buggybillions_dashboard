@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { type FC } from "react";
 import { assests } from "../../assets/assest";
 import { MdEmail } from "react-icons/md";
 
